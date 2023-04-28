@@ -92,9 +92,30 @@ def notif_user(sender,instance,created,**kwargs):
             'count':json.dumps(rh.get_notif_count()),
         }
         async_to_sync(channel_layer.group_send)(group_name,event)
+    
+    if instance.decision == True or instance.decision == False:
+        info.remove_notif(instance.id)
+        channel_layer=get_channel_layer()
+        group_name = 'notif_menager'
+        event ={
+            'type':'nouvelle_demande_info',
+            'direction':'rh',
+            'count':json.dumps(info.get_notif_count()),
+        }
+        async_to_sync(channel_layer.group_send)(group_name,event)
+        
+    if instance.approuver == True or instance.approuver == False:
+        rh.remove_notif(instance.id)
+        channel_layer=get_channel_layer()
+        group_name = 'notif_menager'
+        event ={
+            'type':'nouvelle_demande_rh',
+            'direction':'rh',
+            'count':json.dumps(rh.get_notif_count()),
+        }
+        async_to_sync(channel_layer.group_send)(group_name,event)
         
     if created:
-        info=Notification.objects.get(nom='info')
         if instance.direction.nom=='info' and instance.decision == None:
             info.add_notif(instance.id)
             channel_layer=get_channel_layer()
@@ -105,5 +126,6 @@ def notif_user(sender,instance,created,**kwargs):
                 'count':json.dumps(info.get_notif_count()),
             }
             async_to_sync(channel_layer.group_send)(group_name,event)
+    
             
             
